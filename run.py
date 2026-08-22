@@ -104,7 +104,7 @@ if __name__=='__main__':
 
     validation_dir = cfg.validation.val_dir
     transform_val = transforms.Compose([transforms.Resize((512, 512), interpolation=transforms.InterpolationMode.BILINEAR), transforms.ToTensor()])
-    val_dataset = CloudDataset(folder_path=validation_dir, txt_path="./datos/val.txt", transform=transform_val)
+    val_dataset = CloudDataset(folder_path=validation_dir, txt_path="./datos/val_day.txt", transform=transform_val)
     val_dataloader = DataLoader(val_dataset, batch_size=cfg.validation.batch_size, shuffle=True, num_workers=cfg.validation.num_workers, pin_memory=True, drop_last=False)
 
     ###### TEST DATASET DAY ######
