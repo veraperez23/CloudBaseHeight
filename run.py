@@ -114,7 +114,7 @@ if __name__=='__main__':
     elif cfg.test.test_set == False:
        test_dir = cfg.validation.val_dir
 
-    test_dataset = CloudDataset(folder_path=test_dir, txt_path="./datos/test_day.txt", transform=transform_val)
+    test_dataset = CloudDataset(folder_path=test_dir, txt_path="./datos/test.txt", transform=transform_val)
     test_dataloader = DataLoader(test_dataset, batch_size=cfg.test.batch_size, shuffle=True, num_workers=cfg.test.num_workers, pin_memory=True, drop_last=False)
 
 
