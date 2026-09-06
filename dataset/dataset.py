@@ -56,7 +56,7 @@ class CloudDataset(BaseDataset):
         height = torch.tensor(altura/10000.0, dtype=torch.float32) # División entre 10000 para un entrenamiento más óptimo
 
 
-        return image, height
+        return image, height, img_name
 
 
 

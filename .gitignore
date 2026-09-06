@@ -1,7 +1,9 @@
 datos/
-imagenes_day/
-imagenes_todoeldia/
-imagenes_night/
+imagenes_test/
+imagenes_val/
+imagenes_train/
+semana_lindenberg/
+semana_valladolid/
 
 results/
 venv_ALTURA/
