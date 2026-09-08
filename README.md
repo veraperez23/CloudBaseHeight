@@ -7,20 +7,21 @@ This repository contains a PyTorch regression pipeline for estimating cloud-base
 ```text
 .
 ├── archs/                  # Available model architectures
-├── config/                 # Additional configuration files
+├── checkpoint/             # Resume/checkpoint metadata
 ├── dataset/                # Dataset implementation
 ├── datos/                  # Dataset split files (.txt)
-├── imagenes_day/           # Daytime images
-├── imagenes_night/         # Night-time images
-├── imagenes_todoeldia/     # Images from the full day
+├── imagenes_train/         # Training images
+├── imagenes_val/           # Validation images
+├── imagenes_test/          # Test images
 ├── results/                # Trained models and inference outputs
 ├── scripts/                # Training, validation, and testing logic
 ├── utils/                  # Augmentations, losses, and utilities
-├── baseline.yml            # Full-day training configuration
-├── baseline_day.yml        # Daytime training configuration
-├── baseline_night.yml      # Night-time training configuration
+├── baseline.yml            # Main training configuration
+├── conjunto_datos.py       # Script to build dataset pairs from raw source files
 ├── requirements.txt        # Python dependencies
-└── run.py                  # Main training and inference entry point
+├── run.py                  # Main training and inference entry point
+├── README.md               # Project documentation
+└── wandb/                  # Local W&B run artifacts
 ```
 
 ## Requirements
@@ -70,7 +71,7 @@ Use either the explicit installation commands above or the requirements file acc
 
 ## Weights & Biases Setup
 
-The baseline configurations enable W&B with `wandb.use: True`. Authenticate with your own API key before training:
+The baseline configuration enables W&B with `wandb.use: True`. Authenticate with your own API key before training:
 
 ```bash
 wandb login
@@ -90,87 +91,75 @@ set WANDB_API_KEY=YOUR_WANDB_API_KEY
 $env:WANDB_API_KEY = "YOUR_WANDB_API_KEY"
 ```
 
-Do not commit API keys to the repository. If W&B is not required, set `wandb.use: False` in the selected YAML configuration.
+Do not commit API keys to the repository. If W&B is not required, set `wandb.use: False` in `baseline.yml`.
 
-## Dataset Preparation
+## Image Folders and Dataset Layout
 
-The project does not include a universal dataset. Add your own image dataset and split files before running the code.
-
-The repository contains three baseline configurations, one for each dataset split:
-
-| Configuration | Dataset | Split files |
-|---|---|---|
-| `baseline_day.yml` | Daytime images | `train_day.txt`, `val_day.txt`, `test_day.txt` |
-| `baseline_night.yml` | Night-time images | `train_night.txt`, `val_night.txt`, `test_night.txt` |
-| `baseline.yml` | Full-day images | `train.txt`, `val.txt`, `test.txt` |
-
-The expected image layout is:
+This project currently uses a single training configuration, `baseline.yml`, and expects the following image folders at the repository root:
 
 ```text
-imagenes_day/
-├── train_day/
-├── val_day/
-└── test_day/
+imagenes_train/
+├── ...
 
-imagenes_night/
-├── train_night/
-├── val_night/
-└── test_night/
+imagenes_val/
+├── ...
 
-imagenes_todoeldia/
-├── imagenes train/
-├── imagenes_val/
-└── imagenes_test/
+imagenes_test/
+├── ...
 ```
 
-Each split file in `datos/` must contain one sample per line using this format:
+Each folder contains the images for its corresponding split. The files in `datos/` must match those images and follow this format:
 
 ```text
 image_filename.jpg;cloud_base_height
 ```
 
-For example:
+Example:
 
 ```text
 IMG_0001.jpg;1250.5
 IMG_0002.png;980.0
 ```
 
-The image filename must match a file in the corresponding image directory, and the height must be a numeric value in metres. The dataset loader normalizes this value by dividing it by `10000` during training.
+The `CloudDataset` loader expects one sample per line, and the cloud-base height is normalized internally by dividing it by `10000` during training.
 
-Create or replace the following files for your dataset:
+The current repository uses these split files:
 
 ```text
-datos/train_day.txt
-datos/val_day.txt
-datos/test_day.txt
-datos/train_night.txt
-datos/val_night.txt
-datos/test_night.txt
 datos/train.txt
+datos/train_day.txt
+datos/train_night.txt
 datos/val.txt
+datos/val_day.txt
+datos/val_night.txt
 datos/test.txt
+datos/test_day.txt
+datos/test_night.txt
 ```
 
-Update the selected YAML file so that `train.train_dir`, `validation.val_dir`, and `test.test_dir` point to your image directories. Keep the `.txt` files and image directories consistent.
+Create or replace them with your own data so that every image name listed there exists in the corresponding folder and the numerical height is in metres.
 
-The current `run.py` uses the daytime split filenames (`train_day.txt`, `val_day.txt`, and `test_day.txt`) internally for all configurations. Therefore, before using `baseline_night.yml` or `baseline.yml` with your own data, update those three paths in `run.py` to the corresponding night-time or full-day files, or adapt the entry point to select the split names from the YAML configuration.
+## Dataset Generation with `conjunto_datos.py`
+
+`conjunto_datos.py` is the Python script used to generate the dataset pairs from the raw source data. It reads the image directory and the ceilometer text files, matches each image timestamp to the nearest ceilometer measurement, filters invalid rows, and writes the final `.txt` file used by the model.
+
+This is the script to run when you want to build a dataset from raw camera images and ceilometer readings. It is not a training script; it is a data-preparation utility.
+
+The script is structured around these steps:
+
+1. Read all `.txt` files from the ceilometer source folder.
+2. Merge them into a single time-indexed dataframe.
+3. Walk the image folder recursively and read each photo filename.
+4. Extract the timestamp from the image name.
+5. Match each image to the nearest valid ceilometer sample.
+6. Keep only valid rows according to the project's filters.
+7. Write the resulting `filename;cloud_base_height` entries to the output dataset file.
+
+The default script settings in `conjunto_datos.py` show the idea of the workflow, but you should adapt the source folders and output filename to your own dataset before running it.
 
 ## Training
 
 From the repository root, run:
-
-```bash
-python run.py --mode train --config baseline_day.yml
-```
-
-For the night-time configuration:
-
-```bash
-python run.py --mode train --config baseline_night.yml
-```
-
-For the full-day configuration:
 
 ```bash
 python run.py --mode train --config baseline.yml
@@ -181,7 +170,7 @@ Training writes model weights and related outputs to `results/`. Checkpoints use
 You can select the CUDA device with `--device` and provide an experiment name with `--name`:
 
 ```bash
-python run.py --mode train --config baseline_day.yml --device 0 --name my-day-model
+python run.py --mode train --config baseline.yml --device 0 --name my-model
 ```
 
 ## Inference
@@ -189,26 +178,27 @@ python run.py --mode train --config baseline_day.yml --device 0 --name my-day-mo
 Inference expects a trained model at `results/<model-name>/<model-name>.pt`.
 
 ```bash
-python run.py --mode inference --config baseline_day.yml --name test-model_082337
-```
-
-For a night-time model:
-
-```bash
-python run.py --mode inference --config baseline_night.yml --name test-model_062021
-```
-
-For a full-day model:
-
-```bash
-python run.py --mode inference --config baseline.yml --name my-full-day-model
+python run.py --mode inference --config baseline.yml --name test-model_082337
 ```
 
 Inference results are written to the relevant results directory, including prediction and error files when enabled in the YAML configuration.
 
 ## Configuration
 
-The YAML files control dataset directories, batch sizes, training epochs, augmentations, optimizer settings, model selection, W&B logging, and output behavior. The `model.pick` value selects one of the models listed under `model.models`.
+`baseline.yml` controls dataset directories, batch sizes, training epochs, augmentations, optimizer settings, model selection, W&B logging, and output behavior. The `model.pick` value selects one of the models listed under `model.models`.
+
+You should keep the YAML values consistent with your dataset folders and split files, especially:
+
+```yaml
+train:
+  train_dir: '.\imagenes_train'
+
+validation:
+  val_dir: '.\imagenes_val'
+
+test:
+  test_dir: '.\imagenes_test'
+```
 
 ## Notes
 
