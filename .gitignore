@@ -1,9 +1,9 @@
-datos/
 imagenes_test/
 imagenes_val/
 imagenes_train/
 semana_lindenberg/
 semana_valladolid/
+archivos_nc/
 
 results/
 venv_ALTURA/
