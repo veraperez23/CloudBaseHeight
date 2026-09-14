@@ -4,25 +4,47 @@ This repository contains a PyTorch regression pipeline for estimating cloud-base
 
 ## Repository Structure
 
+The repository includes both the main training/inference pipeline and additional analysis folders used to inspect prediction quality over time.
+
 ```text
 .
-├── archs/                  # Available model architectures
-├── checkpoint/             # Resume/checkpoint metadata
-├── dataset/                # Dataset implementation
-├── datos/                  # Dataset split files (.txt)
-├── imagenes_train/         # Training images
-├── imagenes_val/           # Validation images
-├── imagenes_test/          # Test images
-├── results/                # Trained models and inference outputs
-├── scripts/                # Training, validation, and testing logic
-├── utils/                  # Augmentations, losses, and utilities
-├── baseline.yml            # Main training configuration
-├── conjunto_datos.py       # Script to build dataset pairs from raw source files
-├── requirements.txt        # Python dependencies
-├── run.py                  # Main training and inference entry point
-├── README.md               # Project documentation
-└── wandb/                  # Local W&B run artifacts
+├── archs/                          # Model architectures
+├── baseline.yml                   # Main training configuration
+├── checkpoints/                   # Training checkpoint metadata and resume files
+├── conjunto_datos.py               # Dataset builder from raw source data
+├── dataset/                       # Dataset implementation
+├── datos/                         # Image-to-label split files (.txt)
+├── ejecutar.txt                   # Local execution notes / command shortcuts
+├── evolucion_predicciones/        # Temporal analysis of predictions over time
+├── graphs_results/                # Saved plots and comparison visualizations
+├── imagenes_train/                # Training images
+├── imagenes_val/                  # Validation images
+├── imagenes_test/                 # Test images
+├── README.md                      # Project documentation
+├── requirements.txt               # Python dependencies
+├── results/                       # Trained models and inference outputs
+├── run.py                         # Main training and inference entry point
+├── scripts/                       # Training, validation, and testing scripts
+├── tea_debug.log                  # Local debug log
+├── tratamiento_datos.ipynb        # Data-processing notebook
+├── utils/                         # Augmentations, losses, and utilities
+├── venv_ALTURA/                   # Local virtual environment
+├── wandb/                         # Local W&B artifacts and run metadata
+└── .git/                          # Git repository metadata
 ```
+
+## Prediction Evolution and Analysis
+
+The folder `evolucion_predicciones/` is not part of the main training loop. It is a post-processing and analysis workflow used to study how model predictions evolve over time for a given week of data. The notebooks `evolucion_lindenberg.ipynb` and `evolucion_valladolid.ipynb` load the detailed prediction outputs, compare them against reference measurements, and visualize temporal trends, error evolution, and event-by-event behaviour.
+
+This workflow typically uses:
+
+- `conjunto_datos.py` to build weekly image-to-ceilometer match files from the raw observation data.
+- `archivos_nc/` for the source NetCDF files used during the analysis.
+- `semana_lindenberg/` and `semana_valladolid/` for the generated results for each site.
+- `graphs_results/` to store final plots and comparison figures produced from the notebooks.
+
+In short, `evolucion_predicciones/` complements the main model pipeline by helping assess whether the model is stable and accurate over extended periods, not just on isolated samples.
 
 ## Requirements
 
