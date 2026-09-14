@@ -170,7 +170,7 @@ if __name__=='__main__':
 
         ruta_modelo = os.path.join("results", args.name, f"{args.name}.pt")
         if os.path.exists(ruta_modelo):
-            print(f"--> Loading saved model weights from: {ruta_modelo}")
+            print(f"Loading saved model weights from: {ruta_modelo}")
             model.load_state_dict(torch.load(ruta_modelo, map_location=device))
         else:
             print(f"WARNING: Model file not found at: {ruta_modelo}")
