@@ -139,8 +139,8 @@ image_filename.jpg;cloud_base_height
 Example:
 
 ```text
-IMG_0001.jpg;1250.5
-IMG_0002.png;980.0
+C009_20240224_2034.jpg;7957
+C009_20240601_1025.jpg;1495
 ```
 
 The `CloudDataset` loader expects one sample per line, and the cloud-base height is normalized internally by dividing it by `10000` during training.
