@@ -4,7 +4,7 @@ import os
 from tqdm import tqdm
 import wandb
 import gc
-from scripts.val import validate # ¡Recuerda que luego tendremos que adaptar esta función también!
+from scripts.val import validate
 from utils.utils import freeze_backbone_layers, unfreezing_scheduler
 
 #CARPETA CHECKPOINTS
@@ -41,7 +41,7 @@ def train_regression(model, optimizer, scheduler, train_dataloader, val_dataload
         optimizer.load_state_dict(checkpoint_guardado['estado_optimizador'])
         start_epoch = checkpoint_guardado['epoca'] + 1
     else:
-        print("No hay guardados previos. Empezando desde cero...")
+        print("No previous checkpoint found. Starting from scratch...")
     
     for epoch in range(start_epoch, epochs):
 
@@ -136,16 +136,16 @@ def train_regression(model, optimizer, scheduler, train_dataloader, val_dataload
                 if val_error < best_val_error:
                     best_val_error = val_error
                     early_stopping_counter = 0 
-                    print(f"--> ¡Mejora detectada! Nuevo mejor error de validación: {best_val_error:.2f} metros. Guardando modelo...")
+                    print(f"--> Improvement detected! New best validation error: {best_val_error:.2f} meters. Saving model...")
                     torch.save(model.state_dict(), os.path.join(out_path, f"{modelname}.pt"))
                 else:
                     early_stopping_counter += 1
                     if early_stopping_counter >= patience:
-                        print("Early stopping triggered. El modelo ha dejado de mejorar.")
+                        print("Early stopping triggered. The model stopped improving.")
                         break
 
 
-        print(f"Época {epoch} terminada.")
+        print(f"Epoch {epoch} finished.")
         ruta_archivo=f"{ruta_carpeta}/checkpoint_epoca_{epoch}.pt"
         torch.save
         torch.save({
